@@ -1,0 +1,95 @@
+1. Tulis query untuk menampilkan jumlah total penjualan berdasar kode toko baru seperti hasil dibawah.
+Jawab:
+SELECT 
+    A.`Kode Baru`,
+    COALESCE(SUM(B.`Nominal Transaksi`), 0) AS Total_Penjualan
+FROM A
+LEFT JOIN B 
+    ON B.`Kode Toko` = A.`Kode Baru`
+    OR B.`Kode Toko` = A.`Kode Lama`
+GROUP BY 
+    A.`Kode Baru`
+ORDER BY 
+    A.`Kode Baru`;
+
+2. Tulis query untuk menampilkan daftar toko yang transaksi berdasar kode toko baru seperti hasil dibawah.
+Jawab:
+SELECT DISTINCT
+    A.`Kode Baru`
+FROM A
+JOIN B
+    ON B.`Kode Toko` = A.`Kode Baru`
+    OR B.`Kode Toko` = A.`Kode Lama`
+ORDER BY 
+    A.`Kode Baru`;
+
+3. Tulis query untuk menampilkan toko yang memiliki nominal transaksi terbesar berdasar kode toko baru seperti hasil dibawah.
+Jawab:
+SELECT 
+    A.`Kode Baru`,
+    SUM(B.`Nominal Transaksi`) AS Total_Transaksi
+FROM A
+LEFT JOIN B
+    ON B.`Kode Toko` = A.`Kode Baru`
+    OR B.`Kode Toko` = A.`Kode Lama`
+GROUP BY 
+    A.`Kode Baru`
+ORDER BY 
+    Total_Transaksi DESC
+LIMIT 1;
+
+4. Tulis query untuk menampilkan nama sales terakhir di areanya seperti hasil dibawah.
+Jawab:
+SELECT 
+    A.`Kode Baru` AS Kode_Toko,
+    D.`Nama Sales`
+FROM A
+JOIN C 
+    ON C.`Kode Toko` = A.`Kode Baru`
+JOIN (
+    SELECT 
+        `Area`,
+        `Nama Sales`
+    FROM D
+    WHERE (`Kode Sales`, `Area`) IN (
+        SELECT 
+            MAX(`Kode Sales`) AS MaxKodeSales,
+            `Area`
+        FROM D
+        GROUP BY `Area`
+    )
+) AS D
+    ON D.`Area` = C.`Area Sales`
+ORDER BY 
+    Kode_Toko;
+
+5. Tulis query untuk menampilkan total nominal transaksi per sales terbaru seperti hasil dibawah.
+Jawab:
+SELECT 
+    SalesTerbaru.`Nama Sales` AS Sales,
+    SUM(B.`Nominal Transaksi`) AS Total_Nominal
+FROM A
+JOIN C 
+    ON C.`Kode Toko` = A.`Kode Baru`
+JOIN (
+    SELECT 
+        D1.`Area`,
+        D1.`Nama Sales`
+    FROM D D1
+    JOIN (
+        SELECT 
+            `Area`,
+            MAX(`Kode Sales`) AS MaxKode
+        FROM D
+        GROUP BY `Area`
+    ) D2 ON D1.`Area` = D2.`Area`
+         AND D1.`Kode Sales` = D2.`MaxKode`
+) AS SalesTerbaru
+    ON SalesTerbaru.`Area` = C.`Area Sales`
+LEFT JOIN B
+    ON B.`Kode Toko` = A.`Kode Baru`
+    OR B.`Kode Toko` = A.`Kode Lama`
+GROUP BY 
+    SalesTerbaru.`Nama Sales`
+ORDER BY 
+    Total_Nominal DESC;
